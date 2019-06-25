@@ -1,0 +1,5 @@
+spring ioc基本执行原理：根据配置文件，扫描相关的类包，根据定义的注解依次扫描需要实例化的类，通过反射机制将类实例放入ioc容器中。ioc容器实际可以理解为一个map对象，键存放的是注解中描述的别名，或是配置文件applicationContext.xml中配置的别名。值就是通过反射机制创建出来的实例。
+
+DI基本执行原理：对ioc容器中的实例进行扫描，扫描是否有Autowired的注解，如果有则对其进行赋值。从ioc容器中获取其实例，之前已将所有实例创建并且放到了ioc容器中。
+
+MVC基本执行原理：mvc的执行过程web.xml里配置Servlet拦截，所有前台请求都是从DispatcherServlet开始，重写servlet的init、dopost和doget方法实现请求处理，在完成ioc容器初始化和DI，DispatcherServlet根据请求的url获取不同的controller处理请求完成响应
