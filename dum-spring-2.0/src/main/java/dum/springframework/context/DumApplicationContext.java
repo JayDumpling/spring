@@ -3,6 +3,11 @@ package dum.springframework.context;
 import dum.springframework.annotation.DumAutowired;
 import dum.springframework.annotation.DumController;
 import dum.springframework.annotation.DumService;
+import dum.springframework.aop.config.DumAopConfig;
+import dum.springframework.aop.framework.DumAdvisedSupport;
+import dum.springframework.aop.framework.DumAopProxy;
+import dum.springframework.aop.framework.DumCglibAopProxy;
+import dum.springframework.aop.framework.DumJdkDynamicAopProxy;
 import dum.springframework.beans.DumBeanWrapper;
 import dum.springframework.beans.factory.DumBeanFactory;
 import dum.springframework.beans.factory.config.DumBeanDefinition;
@@ -151,6 +156,13 @@ public class DumApplicationContext extends DumDefaultListableBeanFactory impleme
                 //实例化对象
                 instance = clazz.newInstance();
 
+                DumAdvisedSupport config = instantionAopConfig(dumBeanDefinition);
+                config.setTargetClass(clazz);
+                config.setTarget(instance);
+
+                if(config.pointCutMatch()) {
+                    instance = createProxy(config).getProxy();
+                }
 
                 factoryBeanObjectCache.put(className,instance);
                 factoryBeanObjectCache.put(beanName,instance);
@@ -160,6 +172,25 @@ public class DumApplicationContext extends DumDefaultListableBeanFactory impleme
         }
 
         return instance;
+    }
+
+    private DumAopProxy createProxy(DumAdvisedSupport config) {
+        if (config.getTargetClass().getInterfaces().length > 0)
+        {
+            return new DumJdkDynamicAopProxy(config);
+        }
+        return new DumCglibAopProxy(config);
+    }
+
+    private DumAdvisedSupport instantionAopConfig(DumBeanDefinition dumBeanDefinition) {
+        DumAopConfig config = new DumAopConfig();
+        config.setPointCut(this.reader.getConfig().getProperty("pointCut"));
+        config.setAspectClass(this.reader.getConfig().getProperty("aspectClass"));
+        config.setAspectBefore(this.reader.getConfig().getProperty("aspectBefore"));
+        config.setAspectAfter(this.reader.getConfig().getProperty("aspectAfter"));
+        config.setAspectAfterThrow(this.reader.getConfig().getProperty("aspectAfterThrow"));
+        config.setAspectAfterThrowingName(this.reader.getConfig().getProperty("aspectAfterThrowingName"));
+        return new DumAdvisedSupport(config);
     }
 
     @Override
